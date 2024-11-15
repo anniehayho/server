@@ -1,3 +1,4 @@
+// models/Message.js
 import mongoose from 'mongoose';
 
 const messageSchema = new mongoose.Schema({
@@ -15,6 +16,13 @@ const messageSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  read: {
+    type: Boolean,
+    default: false
+  },
+  readAt: {
+    type: Date
+  }
 }, { timestamps: true });
 
 export default mongoose.model('Message', messageSchema);
