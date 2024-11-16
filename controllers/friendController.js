@@ -61,9 +61,17 @@ export const acceptFriendRequest = async (req, res) => {
     }
 
     friendRequest.status = 'accepted';
-    await friendRequest.save();
+
+    await User.findByIdAndUpdate(userId, {
+      $push: { friends: friendRequest.requester }
+    })
+
+    await User.findByIdAndUpdate(friendRequest.requester, {
+      $push: { friends: userId }
+    })
 
     res.json(friendRequest);
+    await friendRequest.save();
   } catch (error) {
     res.status(400).json({ error: error.message });
   }
