@@ -134,24 +134,6 @@ export const rejectFriendRequest = async (req, res) => {
   }
 };
 
-// export const getFriends = async (req, res) => {
-//   try {
-//     const userId = req.user.id;
-//     const friends = await Friend.find({
-//       $and: [
-//         { $or: [{ requester: userId }, { recipient: userId }] },
-//         { status: 'accepted' }
-//       ]
-//     })
-//     .populate('requester', 'username email')
-//     .populate('recipient', 'username email');
-    
-//     res.json(friends);
-//   } catch (error) {
-//     res.status(500).json({ error: error.message });
-//   }
-// };
-
 export const getFriends = async (req, res) => {
   try {
     const userId = req.user.id;
