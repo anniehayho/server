@@ -16,7 +16,7 @@ const app = express();
 const httpServer = createServer(app);
 const io = new Server(httpServer, {
   cors: {
-    origin: 'http://localhost:3000',
+    origin: 'http://3.23.98.221/:3000',
     credentials: true
   }
 });
@@ -24,7 +24,7 @@ const io = new Server(httpServer, {
 connectDB();
 
 app.use(cors({
-  origin: 'http://localhost:3000',
+  origin: 'http://3.23.98.221/:3000',
   credentials: true
 }));
 
