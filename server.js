@@ -16,7 +16,7 @@ const app = express();
 const httpServer = createServer(app);
 const io = new Server(httpServer, {
   cors: {
-    origin: 'http://18.117.204.122:3000',
+    origin: 'http://3.136.200.153:3000',
     credentials: true
   }
 });
@@ -24,7 +24,7 @@ const io = new Server(httpServer, {
 connectDB();
 
 app.use(cors({
-  origin: 'http://18.117.204.122:3000',
+  origin: 'http://3.136.200.153:3000',
   credentials: true
 }));
 
