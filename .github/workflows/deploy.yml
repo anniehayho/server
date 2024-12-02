@@ -1,28 +1,32 @@
-name: Deploy Server
+name: Deploy Backend Server to EC2
 
 on:
   push:
-    branches:
-      - main
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
-
+    
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: Set up SSH
-        uses: webfactory/ssh-agent@v0.5.3
-        with:
-          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
-
-      - name: Deploy to EC2
-        run: |
-          ssh -o StrictHostKeyChecking=no ${{ secrets.AWS_USER }}@${{ secrets.AWS_HOST }} << 'EOF'
-          cd /path/to/server
+    - name: Deploy Backend to EC2
+      uses: appleboy/ssh-action@master
+      with:
+        host: '3.136.200.153'
+        username: ec2-user
+        key: ${{ secrets.SSH_PRIVATE_KEY }}
+        script: |
+          # Navigate to server directory and update code
+          cd ~/server
           git pull origin main
-          docker-compose down
-          docker-compose up -d --build
-          EOF
+          
+          # Navigate to docker-compose directory
+          cd ~/docker-compose
+          
+          # Rebuild and restart the backend container
+          docker-compose -f dockercompose.yml stop backend-server
+          docker-compose -f dockercompose.yml build backend
+          docker-compose -f dockercompose.yml up -d backend
