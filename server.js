@@ -10,13 +10,21 @@ import friendRoutes from './routes/friend.js';
 import jwt from 'jsonwebtoken';
 import User from './models/User.js';
 import cors from 'cors';
+import swaggerUi from 'swagger-ui-express';
+import YAML from 'yamljs';
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+const swaggerDocument = YAML.load(join(__dirname, './swagger.yaml'));
 
 dotenv.config();
 const app = express();
 const httpServer = createServer(app);
 const io = new Server(httpServer, {
   cors: {
-    origin: 'http://www.chatwithfriends.site',
+    origin: ['http://3.144.47.141', 'http://localhost:5000'],
     credentials: true
   }
 });
@@ -24,11 +32,14 @@ const io = new Server(httpServer, {
 connectDB();
 
 app.use(cors({
-  origin: 'http://www.chatwithfriends.site',
+  origin: ['http://3.144.47.141', 'http://localhost:5000'],
   credentials: true
 }));
 
 app.use(express.json());
+
+// Serve Swagger UI documentation
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 app.use('/api/auth', authRoutes);
 app.use('/api/messages', messageRoutes);
 app.use('/api/users', userRoutes);
