@@ -1,0 +1,401 @@
+openapi: 3.0.0
+info:
+  title: Chat With Friends API
+  description: API documentation for a real-time chat application with authentication, messaging, and friend management features
+  version: 1.0.0
+  contact:
+    name: API Support
+    email: support@chatwithfriends.site
+
+servers:
+  - url: http://3.144.47.141
+    description: Production server
+  - url: http://localhost:5000
+    description: Development server
+
+tags:
+  - name: Authentication
+    description: User authentication endpoints
+  - name: Users
+    description: User management endpoints
+  - name: Messages
+    description: Message handling endpoints
+  - name: Friends
+    description: Friend management endpoints
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    User:
+      type: object
+      properties:
+        _id:
+          type: string
+          description: User ID
+        username:
+          type: string
+          description: Username
+        email:
+          type: string
+          format: email
+          description: User email
+        createdAt:
+          type: string
+          format: date-time
+          description: Account creation timestamp
+    
+    Message:
+      type: object
+      properties:
+        _id:
+          type: string
+          description: Message ID
+        sender:
+          type: string
+          description: Sender user ID
+        receiver:
+          type: string
+          description: Receiver user ID
+        content:
+          type: string
+          description: Message content
+        read:
+          type: boolean
+          description: Message read status
+        createdAt:
+          type: string
+          format: date-time
+          description: Message timestamp
+    
+    FriendRequest:
+      type: object
+      properties:
+        _id:
+          type: string
+          description: Friend request ID
+        sender:
+          type: string
+          description: Sender user ID
+        receiver:
+          type: string
+          description: Receiver user ID
+        status:
+          type: string
+          enum: [pending, accepted, rejected]
+          description: Friend request status
+
+paths:
+  /auth/register:
+    post:
+      tags:
+        - Authentication
+      summary: Register a new user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - username
+                - email
+                - password
+              properties:
+                username:
+                  type: string
+                  example: johndoe
+                email:
+                  type: string
+                  format: email
+                  example: john@example.com
+                password:
+                  type: string
+                  format: password
+                  example: mySecurePassword123
+      responses:
+        '201':
+          description: User successfully registered
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+                    description: JWT token for authentication
+                  user:
+                    $ref: '#/components/schemas/User'
+        '400':
+          description: Invalid input or email already exists
+
+  /auth/login:
+    post:
+      tags:
+        - Authentication
+      summary: Login user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: john@example.com
+                password:
+                  type: string
+                  format: password
+                  example: mySecurePassword123
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+                    description: JWT token for authentication
+                  user:
+                    $ref: '#/components/schemas/User'
+        '401':
+          description: Invalid credentials
+
+  /users:
+    get:
+      tags:
+        - Users
+      summary: Get all users
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: List of users
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/User'
+        '401':
+          description: Unauthorized
+
+  /users/profile:
+    get:
+      tags:
+        - Users
+      summary: Get current user profile
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: User profile
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '401':
+          description: Unauthorized
+
+  /messages/{receiverId}:
+    get:
+      tags:
+        - Messages
+      summary: Get messages with a specific user
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: receiverId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: ID of the user to get messages with
+      responses:
+        '200':
+          description: List of messages
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Message'
+        '401':
+          description: Unauthorized
+
+  /messages:
+    post:
+      tags:
+        - Messages
+      summary: Send a new message
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - receiverId
+                - content
+              properties:
+                receiverId:
+                  type: string
+                  description: ID of message recipient
+                content:
+                  type: string
+                  description: Message content
+      responses:
+        '201':
+          description: Message sent
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Message'
+        '401':
+          description: Unauthorized
+
+  /messages/{messageId}/read:
+    patch:
+      tags:
+        - Messages
+      summary: Mark message as read
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: messageId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: ID of the message to mark as read
+      responses:
+        '200':
+          description: Message marked as read
+        '401':
+          description: Unauthorized
+        '404':
+          description: Message not found
+
+  /friends/request:
+    post:
+      tags:
+        - Friends
+      summary: Send friend request
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - receiverId
+              properties:
+                receiverId:
+                  type: string
+                  description: ID of user to send friend request to
+      responses:
+        '201':
+          description: Friend request sent
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FriendRequest'
+        '401':
+          description: Unauthorized
+
+  /friends/accept/{requestId}:
+    patch:
+      tags:
+        - Friends
+      summary: Accept friend request
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: requestId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: ID of the friend request
+      responses:
+        '200':
+          description: Friend request accepted
+        '401':
+          description: Unauthorized
+        '404':
+          description: Friend request not found
+
+  /friends/reject/{requestId}:
+    delete:
+      tags:
+        - Friends
+      summary: Reject friend request
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: requestId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: ID of the friend request
+      responses:
+        '200':
+          description: Friend request rejected
+        '401':
+          description: Unauthorized
+        '404':
+          description: Friend request not found
+
+  /friends/list:
+    get:
+      tags:
+        - Friends
+      summary: Get friends list
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: List of friends
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/User'
+        '401':
+          description: Unauthorized
+
+  /friends/pending:
+    get:
+      tags:
+        - Friends
+      summary: Get pending friend requests
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: List of pending friend requests
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/FriendRequest'
+        '401':
+          description: Unauthorized
